@@ -1,0 +1,29 @@
+{
+  "name": "pasta",
+  "version": "0.1.0",
+  "description": "Fast and simple UI library.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jerbaroo/pasta.git"
+  },
+  "keywords": [
+    "UI",
+    "JavaScript",
+    "PureScript",
+    "GUI"
+  ],
+  "author": "jerbaroo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jerbaroo/pasta/issues"
+  },
+  "homepage": "https://github.com/jerbaroo/pasta#readme",
+  "devDependencies": {
+    "purescript": "^0.14.0",
+    "spago": "^0.19.1"
+  }
+}
