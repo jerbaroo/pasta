@@ -4,7 +4,15 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-  [ "console", "effect", "ordered-collections", "psci-support", "tuples" ]
+  [ "arrays"
+  , "console"
+  , "effect"
+  , "either"
+  , "maybe"
+  , "ordered-collections"
+  , "prelude"
+  , "tuples"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }

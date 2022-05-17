@@ -1,53 +1,15 @@
-module Pasta.Take2 where
+module Pasta.Attempts.P2 where
 
-import Pasta.Types as T
+import Prelude (Unit, pure, unit, ($))
 
--- import Prelude (($), (<>), Unit, const, pure, unit)
-import Prelude
-
-import Data.Either (Either)
-import Data.Identity (Identity(..))
-import Data.Map (Map)
-import Data.Map as Map
 import Data.Maybe (Maybe(..))
-import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
-import Effect.Console (log)
+import Pasta.Attr
+import Pasta.El
 
---------------------------------------------------------------------------------
--- HTML representation ---------------------------------------------------------
-
-data    HTMLAttr        = HTMLAttr              String   (Maybe String)
-newtype HTMLAttrs       = HTMLAttrs       (Map  String   (Maybe String))
-newtype HTMLTagName     = HTMLTagName     String
-data    HTMLVoidEl      = HTMLVoidEl      HTMLTagName HTMLAttrs
-data    HTMLContainerEl = HTMLContainerEl HTMLTagName HTMLAttrs (Array HTMLEl)
-newtype HTMLEl          = HTMLEl          (Either HTMLContainerEl HTMLVoidEl)
-
---------------------------------------------------------------------------------
--- Attributes ------------------------------------------------------------------
-
-newtype Class    = Class    String
-newtype Disabled = Disabled Boolean
-newtype Id       = Id       String
-newtype Src      = Src      String
-
-data ButtonAttr  = ButtonClass Class | ButtonDisabled Disabled
-data DivAttr     = DivClass    Class
-data ImgAttr     = ImgSrc      Src
-
-class ToElAttr attr elAttr where
-  toElAttr :: attr -> elAttr
-
-instance toElAttrButtonClass    :: ToElAttr Class    ButtonAttr where toElAttr = ButtonClass
-instance toElAttrDivClass       :: ToElAttr Class    DivAttr    where toElAttr = DivClass
-instance toElAttrButtonDisabled :: ToElAttr Disabled ButtonAttr where toElAttr = ButtonDisabled
-instance toElAttrImgSrc         :: ToElAttr Src      ImgAttr    where toElAttr = ImgSrc
-
-appendAttr :: forall attr elAttr. ToElAttr attr elAttr => Array elAttr -> attr -> Array elAttr
-appendAttr e a = e <> [ toElAttr a ]
-
--- infixr 1 appendAttr as !
+-- In order to render we need initial state S.
+-- A function from S to El so we can render S.
+-- A function from S to El so we can render S.
 
 --------------------------------------------------------------------------------
 -- Tags ------------------------------------------------------------------------
@@ -55,18 +17,6 @@ appendAttr e a = e <> [ toElAttr a ]
 data Tag          = TagContainerTag ContainerTag | TagVoidTag VoidTag
 data ContainerTag = TagButton Button | TagDiv Div
 data VoidTag      = TagImg Img
-
-newtype Button  = Button (Array ButtonAttr)
-button          = Button []
-newtype Div     = Div    (Array DivAttr   )
-newtype Img     = Img    (Array ImgAttr   )
-
-class HasTagName a where
-  tagName :: a -> String
-
-instance hasTagNameButton :: HasTagName Button where tagName (Button _) = "button"
-instance hasTagNameDiv    :: HasTagName Div    where tagName (Div    _) = "div"
-instance hasTagNameImg    :: HasTagName Img    where tagName (Img    _) = "img"
 
 --------------------------------------------------------------------------------
 -- Elements --------------------------------------------------------------------
@@ -94,9 +44,14 @@ data    El          state = ElContainerEl (ContainerEl state) | ElVoidEl (VoidEl
 newtype ContainerEl state = ContainerEl   (ElBase state ContainerTag (Children state))
 newtype VoidEl      state = VoidEl        (ElBase state VoidTag      (              ))
 
+-- append :: forall childState state. ContainerEl state -> El childState -> ContainerEl state
+-- append container _ = do
+--   let (ContainerEl (El)) = container
+--   container
+
 example :: Render String Button
-example { state } =
-  Just { tag : Button [ ButtonClass $ Class "Hello" ], onRender : pure unit }
+example {} =
+  Just { tag : Button [ ButtonClass $ Class "Hello" ] [], onRender : pure unit }
 
 -- Button :: forall state. Button state
 -- Button =

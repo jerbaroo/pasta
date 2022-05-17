@@ -1,4 +1,4 @@
-module Pasta.Types where
+module Pasta.Attempts.P1 where
 
 import Prelude (($), (<>), Unit, const, pure, unit)
 
