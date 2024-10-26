@@ -1,8 +1,13 @@
 package:
   name: pasta
   dependencies:
+    - arrays
     - console
     - effect
+    - exists
+    - lists
+    - maybe
+    - open-folds
     - prelude
   test:
     main: Test.Main
