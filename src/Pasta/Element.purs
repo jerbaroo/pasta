@@ -2,9 +2,10 @@ module Pasta.Element where
 
 import Prelude (class Functor, map, ($), (<>))
 
+import Data.Array (null)
 import Data.Foldable (foldMap)
 
-import Pasta.Attribute (class HasAttrs, DivAttr, renderAttrsForEl, toGenericAttr)
+import Pasta.Attribute (class HasAttrs, Attrs(..), DivAttr, attrs, toGenericAttr)
 import Pasta.Render.Class (class Render, render)
 
 -- * HTML element.
@@ -16,6 +17,10 @@ data HtmlEl a
 
 class HtmlTag a where
   htmlTag :: a -> String
+
+renderAttrsForEl :: forall a. HasAttrs a => a -> String
+renderAttrsForEl a =
+  if null (attrs a) then "" else " " <> render (Attrs $ attrs a)
 
 -- ** Container element.
 

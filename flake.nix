@@ -21,6 +21,7 @@
         let pkgs = nixpkgsFor.${system}; in {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
+              esbuild
               nodejs
               purs
               purs-backend-es

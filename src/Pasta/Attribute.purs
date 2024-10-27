@@ -2,7 +2,6 @@ module Pasta.Attribute where
 
 import Prelude hiding (div)
 
-import Data.Array (null)
 import Data.Foldable (intercalate)
 import Data.Maybe (Maybe(..))
 
@@ -31,11 +30,6 @@ newtype Attrs = Attrs (Array GenericAttr)
 
 instance Render Attrs where
   render (Attrs attrs) = intercalate " " $ map render attrs
-
--- TODO move to Pasta.Element
-renderAttrsForEl :: forall a. HasAttrs a => a -> String
-renderAttrsForEl a =
-  if null (attrs a) then "" else " " <> render (Attrs $ attrs a)
 
 -- * Attributes.
 

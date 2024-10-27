@@ -1,19 +1,16 @@
 module Main where
 
-import Prelude (Unit, discard, show, ($), (<<<))
+import Prelude (Unit, discard, show, ($))
 
 import Effect (Effect)
 import Effect.Console (log)
 
 import Pasta.Attribute (class')
 import Pasta.Component (Component, c, component, div, div_, text)
-import Pasta.Render.Class (render)
-import Pasta.Render.RawHtmlEl (renderComponent)
+import Pasta.Run (run)
 
 main :: Effect Unit
-main = do
-  log "🍝"
-  log $ render $ renderComponent parent { foo: 1, bar: 2 } $ log <<< show
+main = run "root" parent { foo: 1, bar: 2 }
 
 type AppState = { foo :: Int, bar :: Int }
 
