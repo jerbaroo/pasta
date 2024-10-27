@@ -16,9 +16,9 @@ parent :: Component AppState
 parent = component "counter-example" \_ _ ->
   div
     [ class' "hello" ]
-    [ c _.foo (\t s -> s{foo=t}) counter
-    , c _.bar (\t s -> s{bar=t}) counter
+    [ c _.foo (\t s -> s { foo = t }) counter
+    , c _.bar (\t s -> s { bar = t }) counter
     ]
 
 counter :: Component Int
-counter = component "counter" \s _ -> div_ [text $ show s]
+counter = component "counter" \s _ -> div_ [ text $ show s ]

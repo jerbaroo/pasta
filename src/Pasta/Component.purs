@@ -16,9 +16,9 @@ type SetState s = s -> Effect Unit
 
 -- | A function from state 's' to renderable node. Hashable for performance.
 data Component s = Component
-    -- | Set this string to hash the rendered result for a given state 's'.
+  -- | Set this string to hash the rendered result for a given state 's'.
   { key :: Maybe String
-    -- | A function from state 's' and state update function to renderable node.
+  -- | A function from state 's' and state update function to renderable node.
   , node :: s -> SetState s -> Node s
   }
 

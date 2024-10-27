@@ -12,8 +12,8 @@ import Pasta.Render.Class (class Render, render)
 -- | An intermediary type between 'Component' and HTML string.
 data RawHtmlEl
   = RawHtmlContainerEl (HtmlContainerEl RawHtmlEl)
-  | RawHtmlInner       String
-  | RawHtmlVoidEl      HtmlVoidEl
+  | RawHtmlInner String
+  | RawHtmlVoidEl HtmlVoidEl
 
 -- | Set of types that can be converted to the intermediary 'RawHtmlEl' type.
 class ToRawHtmlEl a s where
@@ -27,9 +27,9 @@ instance Render RawHtmlEl where
 instance ToRawHtmlEl (ChildComponent s) s where
   toRawHtmlEl child' s setS = runExists toRawHtmlEl' child'
     where
-      toRawHtmlEl' :: forall t. ChildComponentF s t -> RawHtmlEl
-      toRawHtmlEl' (ChildComponent (sToT /\ updateTInS /\ componentT)) =
-        toRawHtmlEl componentT (sToT s) $ \t -> setS $ updateTInS t s
+    toRawHtmlEl' :: forall t. ChildComponentF s t -> RawHtmlEl
+    toRawHtmlEl' (ChildComponent (sToT /\ updateTInS /\ componentT)) =
+      toRawHtmlEl componentT (sToT s) $ \t -> setS $ updateTInS t s
 
 instance ToRawHtmlEl (Component s) s where
   toRawHtmlEl (Component component') s setS =
