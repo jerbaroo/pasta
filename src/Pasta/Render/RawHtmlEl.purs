@@ -5,7 +5,7 @@ import Prelude
 import Data.Exists (runExists)
 import Data.Tuple.Nested ((/\))
 
-import Pasta.Component (ChildComponent, ChildComponentF(..), Component, Node(..), SetState)
+import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), SetState)
 import Pasta.Element (HtmlContainerEl, HtmlEl(..), HtmlVoidEl)
 import Pasta.Render.Class (class Render, render)
 
@@ -29,17 +29,18 @@ instance ToRawHtmlEl (ChildComponent s) s where
     where
       toRawHtmlEl' :: forall t. ChildComponentF s t -> RawHtmlEl
       toRawHtmlEl' (ChildComponent (sToT /\ updateTInS /\ componentT)) =
-        renderComponent componentT (sToT s) $ \t -> setS $ updateTInS t s
+        toRawHtmlEl componentT (sToT s) $ \t -> setS $ updateTInS t s
 
-renderComponent :: forall s. Component s -> s -> SetState s -> RawHtmlEl
-renderComponent component' s setS = renderNode (component'.node s setS) s setS
+instance ToRawHtmlEl (Component s) s where
+  toRawHtmlEl (Component component') s setS =
+    toRawHtmlEl (component'.node s setS) s setS
 
-renderHtml :: forall s. HtmlEl (Node s) -> s -> SetState s -> RawHtmlEl
-renderHtml (HtmlContainerEl container) s setS =
-  RawHtmlContainerEl $ map (\n -> renderNode n s setS) container
-renderHtml (HtmlInner inner) _ _ = RawHtmlInner inner
-renderHtml (HtmlVoidEl void) _ _ = RawHtmlVoidEl void
+instance ToRawHtmlEl (HtmlEl (Node s)) s where
+  toRawHtmlEl (HtmlContainerEl container) s setS =
+    RawHtmlContainerEl $ map (\n -> toRawHtmlEl n s setS) container
+  toRawHtmlEl (HtmlInner inner) _ _ = RawHtmlInner inner
+  toRawHtmlEl (HtmlVoidEl void) _ _ = RawHtmlVoidEl void
 
-renderNode :: forall s. Node s -> s -> SetState s -> RawHtmlEl
-renderNode (NodeChildComponent child') s setS = toRawHtmlEl child' s setS
-renderNode (NodeHtmlEl html) s setS = renderHtml html s setS
+instance ToRawHtmlEl (Node s) s where
+  toRawHtmlEl (NodeChildComponent child') s setS = toRawHtmlEl child' s setS
+  toRawHtmlEl (NodeHtmlEl html) s setS = toRawHtmlEl html s setS

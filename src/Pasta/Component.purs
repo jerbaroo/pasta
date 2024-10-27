@@ -15,7 +15,7 @@ import Pasta.Element (HtmlContainerEl(..), HtmlEl(..))
 type SetState s = s -> Effect Unit
 
 -- | A function from state 's' to renderable node. Hashable for performance.
-type Component s =
+data Component s = Component
     -- | Set this string to hash the rendered result for a given state 's'.
   { key :: Maybe String
     -- | A function from state 's' and state update function to renderable node.
@@ -23,10 +23,10 @@ type Component s =
   }
 
 component :: forall s. String -> (s -> SetState s -> Node s) -> Component s
-component key node = { key: Just key, node }
+component key node = Component { key: Just key, node }
 
 component_ :: forall s. (s -> SetState s -> Node s) -> Component s
-component_ node = { key: Nothing, node }
+component_ node = Component { key: Nothing, node }
 
 -- * Child component.
 

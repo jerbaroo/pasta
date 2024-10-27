@@ -1,10 +1,8 @@
 module Main where
 
-import Prelude (Unit, discard, show, ($))
+import Prelude (Unit, show, ($))
 
 import Effect (Effect)
-import Effect.Console (log)
-
 import Pasta.Attribute (class')
 import Pasta.Component (Component, c, component, div, div_, text)
 import Pasta.Run (run)
