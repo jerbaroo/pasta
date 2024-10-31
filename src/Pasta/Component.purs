@@ -3,6 +3,7 @@ module Pasta.Component where
 import Prelude (Unit, ($), (<<<))
 
 import Data.Exists (Exists, mkExists)
+import Data.Function (flip)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
@@ -61,7 +62,7 @@ text :: forall s. String -> Node s
 text = NodeHtmlEl <<< HtmlInner
 
 div :: forall s. Array DivAttr -> Array (Node s) -> Node s
-div attrs = NodeHtmlEl <<< HtmlContainerEl <<< Div attrs
+div attrs = NodeHtmlEl <<< flip HtmlContainerEl [] <<< Div attrs
 
 div_ :: forall s. Array (Node s) -> Node s
-div_ = NodeHtmlEl <<< HtmlContainerEl <<< Div []
+div_ = NodeHtmlEl <<< flip HtmlContainerEl [] <<< Div []

@@ -18,7 +18,7 @@ instance Render GenericAttr where
       Nothing -> key
       Just value' -> key <> "='" <> value' <> "'"
 
--- | Set of types that are attributes (can be converted to 'GenericAttr').
+-- | Set of types that are attributes (convertible to 'GenericAttr').
 class ToGenericAttr a where
   toGenericAttr :: a -> GenericAttr
 

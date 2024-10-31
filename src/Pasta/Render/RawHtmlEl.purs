@@ -36,10 +36,10 @@ instance ToRawHtmlEl (Component s) s where
     toRawHtmlEl (component'.node s setS) s setS
 
 instance ToRawHtmlEl (HtmlEl (Node s)) s where
-  toRawHtmlEl (HtmlContainerEl container) s setS =
+  toRawHtmlEl (HtmlContainerEl container _) s setS = -- TODO don't ignore listeners
     RawHtmlContainerEl $ map (\n -> toRawHtmlEl n s setS) container
   toRawHtmlEl (HtmlInner inner) _ _ = RawHtmlInner inner
-  toRawHtmlEl (HtmlVoidEl void) _ _ = RawHtmlVoidEl void
+  toRawHtmlEl (HtmlVoidEl void _) _ _ = RawHtmlVoidEl void -- TODO don't ignore listeners
 
 instance ToRawHtmlEl (Node s) s where
   toRawHtmlEl (NodeChildComponent child') s setS = toRawHtmlEl child' s setS

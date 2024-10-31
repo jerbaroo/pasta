@@ -6,14 +6,20 @@ import Data.Array (null)
 import Data.Foldable (foldMap)
 
 import Pasta.Attribute (class HasAttrs, Attrs(..), DivAttr, attrs, toGenericAttr)
+import Pasta.Listener (class HasListeners, Listener)
 import Pasta.Render.Class (class Render, render)
 
 -- * HTML element.
 
 data HtmlEl a
-  = HtmlContainerEl (HtmlContainerEl a)
+  = HtmlContainerEl (HtmlContainerEl a) (Array Listener)
   | HtmlInner String
-  | HtmlVoidEl HtmlVoidEl
+  | HtmlVoidEl HtmlVoidEl (Array Listener)
+
+instance HasListeners (HtmlEl a) where
+  listeners (HtmlContainerEl _ listeners') = listeners'
+  listeners (HtmlInner _) = []
+  listeners (HtmlVoidEl _ listeners') = listeners'
 
 class HtmlTag a where
   htmlTag :: a -> String
