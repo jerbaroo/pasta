@@ -1,9 +1,10 @@
 module Pasta.Component where
 
-import Prelude (Unit, ($), (<<<))
+import Prelude (Unit, ($), (<<<), pure, unit)
 
 import Data.Exists (Exists, mkExists)
 import Data.Function (flip)
+import Data.Hashable (class Hashable, hash)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
@@ -13,21 +14,36 @@ import Pasta.Element (HtmlContainerEl(..), HtmlEl(..))
 
 -- * Component.
 
+type Key = String
+
 type SetState s = s -> Effect Unit
 
--- | A function from state 's' to renderable node. Hashable for performance.
-data Component s = Component
-  -- | Set this string to hash the rendered result for a given state 's'.
-  { key :: Maybe String
-  -- | A function from state 's' and state update function to renderable node.
-  , node :: s -> SetState s -> Node s
+-- | A function from state to node, and some rendering options.
+data Component s = Component -- TODO type?
+  { node :: s -> SetState s -> Node s
+  , options :: Options s
   }
 
-component :: forall s. String -> (s -> SetState s -> Node s) -> Component s
-component key node = Component { key: Just key, node }
+-- | Rendering options.
+type Options s =
+  { hash :: s -> Int
+  -- | Key to enable hashing of the component for a given state 's'.
+  , key :: Maybe Key
+  -- | A function to execute when this component's state is updated.
+  , onUpdate :: SetState s
+  }
 
-component_ :: forall s. (s -> SetState s -> Node s) -> Component s
-component_ node = Component { key: Nothing, node }
+-- | Default options.
+options :: forall s. Hashable s => Options s
+options = { hash: hash, key: Nothing, onUpdate: \_ -> pure unit }
+
+-- | Construct a component with given 'Options'.
+component :: forall s. Options s -> (s -> SetState s -> Node s) -> Component s
+component options node = Component { node, options }
+
+-- | Construct a component with default 'Options' and given 'Key'.
+componentK :: forall s. Hashable s => Key -> (s -> SetState s -> Node s) -> Component s
+componentK key node = Component { node, options: options { key = Just key } }
 
 -- * Child component.
 
@@ -43,7 +59,7 @@ childComponent = mkExists <<< ChildComponent
 
 -- * Node.
 
--- | A node can be rendered to HTML.
+-- | A node is either HTML or a child component, think of it like JSX.
 data Node s
   = NodeChildComponent (ChildComponent s)
   | NodeHtmlEl (HtmlEl (Node s))

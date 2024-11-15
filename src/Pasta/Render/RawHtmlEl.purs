@@ -2,11 +2,17 @@ module Pasta.Render.RawHtmlEl where
 
 import Prelude
 
+import Data.Either (Either(..))
 import Data.Exists (runExists)
-import Data.Tuple.Nested ((/\))
+import Data.Hashable (class Hashable, hash)
+import Data.Map (Map)
+import Data.Map as Map
+import Data.Maybe (Maybe(..))
+import Data.Tuple.Nested (type (/\), (/\))
 
+import Pasta.Component as Component
 import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), SetState)
-import Pasta.Element (HtmlContainerEl, HtmlEl(..), HtmlVoidEl)
+import Pasta.Element (HtmlContainerEl, HtmlEl(..), HtmlVoidEl, children)
 import Pasta.Render.Class (class Render, render)
 
 -- | An intermediary type between 'Component' and HTML string.
@@ -44,3 +50,43 @@ instance ToRawHtmlEl (HtmlEl (Node s)) s where
 instance ToRawHtmlEl (Node s) s where
   toRawHtmlEl (NodeChildComponent child') s setS = toRawHtmlEl child' s setS
   toRawHtmlEl (NodeHtmlEl html) s setS = toRawHtmlEl html s setS
+
+-- Version 2.
+
+type StateHash = Int
+
+type ComponentRef = Component.Key /\ StateHash
+
+type HtmlElOrRef = Either RawHtmlEl ComponentRef
+
+type Cache = Map ComponentRef (Array HtmlElOrRef)
+
+data Flat
+  = FlatComponentRef ComponentRef
+  | FlatHtmlEl (HtmlEl Flat)
+
+newtype Identity = Identity (HtmlEl Identity)
+type RawHtml = HtmlEl Identity
+
+cacheChild :: forall s. ChildComponent s -> s -> SetState s -> Flat
+cacheChild child' s setS = runExists cacheChild' child'
+  where
+  cacheChild' :: forall t. ChildComponentF s t -> Flat
+  cacheChild' (ChildComponent (sToT /\ updateTInS /\ componentT)) =
+    cacheComponent componentT (sToT s) $ \t -> setS $ updateTInS t s
+
+cacheComponent :: forall s. Component s -> s -> SetState s -> Flat
+cacheComponent (Component c) s setS =
+  case c.options.key of
+    Nothing -> cacheNode (c.node s setS) s setS
+    Just key -> FlatComponentRef $ key /\ c.options.hash s -- TODO cache value
+
+cacheHtmlEl :: forall s. HtmlEl (Node s) -> s -> SetState s -> Flat
+cacheHtmlEl (HtmlVoidEl void ls) s setS = FlatHtmlEl $ HtmlVoidEl void ls
+cacheHtmlEl (HtmlInner inner) s setS = FlatHtmlEl $ HtmlInner inner
+cacheHtmlEl (HtmlContainerEl container ls) s setS = FlatHtmlEl $
+    HtmlContainerEl (map (\node -> cacheNode node s setS) container) ls
+
+cacheNode :: forall s. Node s -> s -> SetState s -> Flat
+cacheNode (NodeChildComponent child') s setS = cacheChild child' s setS
+cacheNode (NodeHtmlEl htmlEl) s setS = cacheHtmlEl htmlEl s setS

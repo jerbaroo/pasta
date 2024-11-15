@@ -9,6 +9,7 @@ package:
     - maybe
     - open-folds
     - prelude
+    - unordered-collections
   test:
     main: Test.Main
     dependencies: []
