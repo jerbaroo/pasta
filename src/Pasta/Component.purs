@@ -42,7 +42,8 @@ component :: forall s. Options s -> (s -> SetState s -> Node s) -> Component s
 component options node = Component { node, options }
 
 -- | Construct a component with default 'Options' and given 'Key'.
-componentK :: forall s. Hashable s => Key -> (s -> SetState s -> Node s) -> Component s
+componentK
+  :: forall s. Hashable s => Key -> (s -> SetState s -> Node s) -> Component s
 componentK key node = Component { node, options: options { key = Just key } }
 
 -- * Child component.
@@ -52,9 +53,11 @@ type ChildComponent s = Exists (ChildComponentF s)
 
 -- | A component with additional functions to convert parent state 's' to child
 -- | state 't', and to update parent state 's' when given child state 't'.
-data ChildComponentF s t = ChildComponent ((s -> t) /\ (t -> s -> s) /\ Component t)
+data ChildComponentF s t = ChildComponent
+  ((s -> t) /\ (t -> s -> s) /\ Component t)
 
-childComponent :: forall s t. (s -> t) /\ (t -> s -> s) /\ Component t -> ChildComponent s
+childComponent
+  :: forall s t. (s -> t) /\ (t -> s -> s) /\ Component t -> ChildComponent s
 childComponent = mkExists <<< ChildComponent
 
 -- * Node.

@@ -37,7 +37,8 @@ instance Render Attrs where
 newtype Class = Class String
 
 instance ToGenericAttr Class where
-  toGenericAttr (Class class') = GenericAttr { key: "class", value: Just class' }
+  toGenericAttr (Class class') = GenericAttr
+    { key: "class", value: Just class' }
 
 class ClassAttr a where
   class' :: String -> a
