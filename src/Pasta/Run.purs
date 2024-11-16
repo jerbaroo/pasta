@@ -1,26 +1,34 @@
 module Pasta.Run where
 
-import Prelude (class Show, Unit, discard, show, ($))
+import Prelude (Unit, bind, discard, show, (<>))
 
+import Data.Either (Either(..))
+import Data.Map (empty)
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
-import Effect.Console (log)
 
 import Pasta.Component (Component(..))
 import Pasta.Render.Class (render)
-import Pasta.Render.RawHtmlEl (toRawHtmlEl)
+import Pasta.Render.RawHtmlEl (Cache, flatComponent, flatToRaw)
 
 foreign import attach :: String -> String -> Effect Unit
+foreign import getCache :: Effect Cache
+foreign import setCache :: Cache -> Effect Unit
 
 run :: forall s. String -> Component s -> s -> Effect Unit
-run attachId component s0 = do
-  let (Component c) = component
+run attachId component@(Component c) s0 = do
   let
-    onUpdate sn = do
-      -- Execute the component's 'onUpdate' function.
+    setState sn = do
       c.options.onUpdate sn
-      -- Render the given component..
-      let html = render $ toRawHtmlEl component sn onUpdate
+      cache <- getCache
+      let flat /\ cacheNext = flatComponent cache component sn setState
+      let
+        html = case flatToRaw cacheNext flat of
+          Left (key /\ hash) ->
+            "error: could not find " <> key <> "-" <> show hash <> " in cache"
+          Right raw -> render raw
       -- ..and attach to the DOM.
       attach attachId html
-  -- Render the component with initial state s0.
-  onUpdate s0
+      setCache cacheNext
+  setCache empty
+  setState s0

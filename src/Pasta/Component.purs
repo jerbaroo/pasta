@@ -10,7 +10,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
 import Pasta.Attribute (DivAttr)
-import Pasta.Element (HtmlContainerEl(..), HtmlEl(..))
+import Pasta.Element (ContainerEl(..), ContainerTag(..), HtmlEl(..))
 
 -- * Component.
 
@@ -19,7 +19,7 @@ type Key = String
 type SetState s = s -> Effect Unit
 
 -- | A function from state to node, and some rendering options.
-data Component s = Component -- TODO type?
+data Component s = Component
   { node :: s -> SetState s -> Node s
   , options :: Options s
   }
@@ -39,7 +39,7 @@ options = { hash: hash, key: Nothing, onUpdate: \_ -> pure unit }
 
 -- | Construct a component with given 'Options'.
 component :: forall s. Options s -> (s -> SetState s -> Node s) -> Component s
-component options node = Component { node, options }
+component options' node = Component { node, options: options' }
 
 -- | Construct a component with default 'Options' and given 'Key'.
 componentK
@@ -81,7 +81,7 @@ text :: forall s. String -> Node s
 text = NodeHtmlEl <<< HtmlInner
 
 div :: forall s. Array DivAttr -> Array (Node s) -> Node s
-div attrs = NodeHtmlEl <<< flip HtmlContainerEl [] <<< Div attrs
+div as cs = NodeHtmlEl $ HtmlContainerEl $ ContainerEl Div as cs []
 
 div_ :: forall s. Array (Node s) -> Node s
-div_ = NodeHtmlEl <<< flip HtmlContainerEl [] <<< Div []
+div_ = div []
