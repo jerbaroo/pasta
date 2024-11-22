@@ -3,13 +3,12 @@ module Pasta.Component where
 import Prelude (Unit, ($), (<<<), pure, unit)
 
 import Data.Exists (Exists, mkExists)
-import Data.Function (flip)
 import Data.Hashable (class Hashable, hash)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
-import Pasta.Attribute (DivAttr)
+import Pasta.Attribute (DivAttr, toAttrs)
 import Pasta.Element (ContainerEl(..), ContainerTag(..), HtmlEl(..))
 
 -- * Component.
@@ -81,7 +80,7 @@ text :: forall s. String -> Node s
 text = NodeHtmlEl <<< HtmlInner
 
 div :: forall s. Array DivAttr -> Array (Node s) -> Node s
-div as cs = NodeHtmlEl $ HtmlContainerEl $ ContainerEl Div as cs []
+div as cs = NodeHtmlEl $ HtmlContainerEl $ ContainerEl Div (toAttrs as) cs []
 
 div_ :: forall s. Array (Node s) -> Node s
 div_ = div []

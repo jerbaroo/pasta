@@ -29,17 +29,20 @@ class HtmlTag a where
 
 renderAttrsForEl :: forall a. HasAttrs a => a -> String
 renderAttrsForEl a =
-  if null (attrs a) then "" else " " <> render (Attrs $ attrs a)
+  let
+    attrs'@(Attrs array) = attrs a
+  in
+    if null array then "" else " " <> render attrs'
 
 -- ** Container element.
 
-data ContainerEl a = ContainerEl ContainerTag (Array DivAttr) (Array a) (Array Listener)
+data ContainerEl a = ContainerEl ContainerTag Attrs (Array a) (Array Listener)
 
 instance Functor ContainerEl where
   map f (ContainerEl tag as cs ls) = ContainerEl tag as (map f cs) ls
 
 instance HasAttrs (ContainerEl a) where
-  attrs (ContainerEl _ as _ _) = map toGenericAttr as
+  attrs (ContainerEl _ as _ _) = as
 
 instance HtmlTag (ContainerEl a) where
   htmlTag (ContainerEl tag _ _ _) = render tag

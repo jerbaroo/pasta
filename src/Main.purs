@@ -2,15 +2,16 @@ module Main where
 
 import Prelude (Unit, show, ($), (<<<))
 
+import Data.Map (empty)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Pasta.Attribute (class')
 import Pasta.Component (Component, c, component, componentK, div, div_, options, text)
-import Pasta.Run (run)
+import Pasta.Run (noCache, run)
 
 main :: Effect Unit
-main = run "root" parent { foo: 1, bar: 2 }
+main = run (noCache "root") empty parent { foo: 1, bar: 2 }
 
 type AppState = { foo :: Int, bar :: Int }
 

@@ -22,14 +22,18 @@ instance Render GenericAttr where
 class ToGenericAttr a where
   toGenericAttr :: a -> GenericAttr
 
+-- | Newtype for rendering.
+newtype Attrs = Attrs (Array GenericAttr)
+
 -- | Set of types that have attributes.
 class HasAttrs a where
-  attrs :: a -> Array GenericAttr
-
-newtype Attrs = Attrs (Array GenericAttr)
+  attrs :: a -> Attrs
 
 instance Render Attrs where
   render (Attrs attrs) = intercalate " " $ map render attrs
+
+toAttrs :: forall a. ToGenericAttr a => Array a -> Attrs
+toAttrs = Attrs <<< map toGenericAttr
 
 -- * Attributes.
 
