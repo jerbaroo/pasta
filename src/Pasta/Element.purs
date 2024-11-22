@@ -1,6 +1,6 @@
 module Pasta.Element where
 
-import Prelude (class Functor, map, ($), (<>))
+import Prelude (class Functor, map, (<>))
 
 import Control.Applicative (class Applicative)
 import Data.Array (null)
@@ -8,7 +8,7 @@ import Data.Foldable (foldMap)
 import Data.Functor ((<#>))
 import Data.Traversable as Traversable
 
-import Pasta.Attribute (class HasAttrs, Attrs(..), DivAttr, attrs, toGenericAttr)
+import Pasta.Attribute (class HasAttrs, Attrs(..), attrs)
 import Pasta.Listener (class HasListeners, Listener)
 import Pasta.Render.Class (class Render, render)
 

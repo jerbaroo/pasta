@@ -9,26 +9,29 @@ import Effect.Console (log)
 
 import Pasta.Component (Component)
 import Pasta.Render.Class (render)
-import Pasta.Render.RawHtmlEl (Cache)
-import Pasta.Render.RawHtmlEl as Flat
+import Pasta.Run.Flat as Flat
+import Pasta.Strategy (Strategy(..), DomUpdates(..))
 
 foreign import attach :: String -> String -> Effect Unit
-foreign import getCache :: Effect Cache
-foreign import setCache :: Cache -> Effect Unit
 
-noCache :: String -> Flat.Strategy Flat.Flat Flat.Cache
-noCache attachId = Flat.Strategy
+-- TODO polymorphic
+foreign import getCache :: Effect Flat.Cache
+foreign import setCache :: Flat.Cache -> Effect Unit
+
+-- TODO move to Pasta.Strategy.Flat
+noCache :: String -> Strategy Flat.Flat Flat.Cache
+noCache attachId = Strategy
   { getCache: getCache
   , instructions: \c f -> case Flat.flatToRaw c f of
       Left (key /\ hash) -> Left $
         "error: could not find " <> key <> "-" <> show hash <> " in cache"
-      Right raw -> Right $ Flat.Attach raw attachId
-  , run: Flat.run @Flat.Flat
+      Right raw -> Right $ InnerHtml raw attachId
+  , run: Flat.runComponent
   , setCache: setCache
   }
 
-run :: forall o c s. Flat.Strategy o c -> c -> Component s -> s -> Effect Unit
-run (Flat.Strategy strat) cache0 component s0 = do
+run :: forall o c s. Strategy o c -> c -> Component s -> s -> Effect Unit
+run (Strategy strat) cache0 component s0 = do
   let
     setState :: s -> Effect Unit
     setState sn = do
@@ -36,7 +39,7 @@ run (Flat.Strategy strat) cache0 component s0 = do
       let out /\ nextCache = strat.run currCache component sn setState
       case strat.instructions nextCache out of
         Left error -> log error
-        Right (Flat.Attach raw attachId) -> do
+        Right (InnerHtml raw attachId) -> do
           attach attachId $ render raw
           strat.setCache nextCache
   strat.setCache cache0
