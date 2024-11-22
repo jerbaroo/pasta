@@ -9,7 +9,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
 import Pasta.Attribute (DivAttr, toAttrs)
-import Pasta.Element (ContainerEl(..), ContainerTag(..), HtmlEl(..))
+import Pasta.Element (Container(..), ContainerTag(..), Element(..))
 
 -- * Component.
 
@@ -28,7 +28,7 @@ type Options s =
   { hash :: s -> Int
   -- | Key to enable hashing of the component for a given state 's'.
   , key :: Maybe Key
-  -- | A function to execute when this component's state is updated.
+  -- | A function to execute before state is updated.
   , onUpdate :: SetState s
   }
 
@@ -64,7 +64,7 @@ childComponent = mkExists <<< ChildComponent
 -- | A node is either HTML or a child component, think of it like JSX.
 data Node s
   = NodeChildComponent (ChildComponent s)
-  | NodeHtmlEl (HtmlEl (Node s))
+  | NodeElement (Element (Node s))
 
 -- | Lift a child component into a 'Node'.
 child :: forall s t. (s -> t) -> (t -> s -> s) -> Component t -> Node s
@@ -77,10 +77,10 @@ c = child
 -- * HTML nodes.
 
 text :: forall s. String -> Node s
-text = NodeHtmlEl <<< HtmlInner
+text = NodeElement <<< ElementInner
 
 div :: forall s. Array DivAttr -> Array (Node s) -> Node s
-div as cs = NodeHtmlEl $ HtmlContainerEl $ ContainerEl Div (toAttrs as) cs []
+div as cs = NodeElement $ ElementContainer $ Container Div (toAttrs as) cs []
 
 div_ :: forall s. Array (Node s) -> Node s
 div_ = div []

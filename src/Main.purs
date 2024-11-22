@@ -7,11 +7,12 @@ import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Pasta.Attribute (class')
+import Pasta.Cook as Pasta
 import Pasta.Component (Component, c, component, componentK, div, div_, options, text)
-import Pasta.Run (noCache, run)
+import Pasta.Strategy.Flat (innerHtml)
 
 main :: Effect Unit
-main = run (noCache "root") empty parent { foo: 1, bar: 2 }
+main = Pasta.cook "counter" (innerHtml "root") empty parent { foo: 1, bar: 2 }
 
 type AppState = { foo :: Int, bar :: Int }
 
