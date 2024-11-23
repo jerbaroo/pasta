@@ -13,20 +13,20 @@ import Pasta.Strategy (Strategy, DomUpdates(..))
 
 foreign import attach :: String -> String -> Effect Unit
 
-foreign import getCache :: forall a. String -> Effect a
-foreign import setCache :: forall a. String -> a -> Effect Unit
+foreign import getGlobal :: forall a. String -> Effect a
+foreign import setGlobal :: forall a. String -> a -> Effect Unit
 
 cook :: forall o c s. String -> Strategy o c -> c -> Component s -> s -> Effect Unit
-cook cacheId strat cache0 component s0 = do
+cook globalId strat vDom0 component s0 = do
   let
     setState :: s -> Effect Unit
     setState sn = do
-      currCache <- getCache cacheId
-      let out /\ nextCache = strat.run currCache component sn setState
-      case strat.instructions nextCache out of
+      vDomOld <- getGlobal globalId
+      let root /\ vDomNew = strat.run vDomOld component sn setState
+      case strat.instructions vDomOld vDomNew root of
         Left error -> log error
         Right (InnerHtml raw attachId) -> do
           attach attachId $ render raw
-          setCache cacheId nextCache
-  setCache cacheId cache0
+          setGlobal globalId vDomNew
+  setGlobal globalId vDom0
   setState s0

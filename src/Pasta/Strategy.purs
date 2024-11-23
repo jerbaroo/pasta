@@ -13,7 +13,7 @@ data DomUpdates
 type Error = String
 
 -- | A strategy of generating DOM updates for a component.
-type Strategy o c =
-  { instructions :: c -> o -> Either Error DomUpdates
-  , run :: forall s. RunComponent o c s
+type Strategy o v =
+  { instructions :: v -> v -> o -> Either Error DomUpdates
+  , run :: forall s. RunComponent o v s
   }

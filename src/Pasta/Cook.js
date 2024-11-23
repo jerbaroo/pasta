@@ -3,12 +3,12 @@ export const attach = (attachId) => (innerHtml) => () => {
   elem.innerHTML = innerHtml
 }
 
-var cache = {}
+var global = {}
 
-export const getCache = cacheId => () => {
-  return cache[cacheId]
+export const getGlobal = globalId => () => {
+  return global[globalId]
 }
 
-export const setCache = cacheId => c => () => {
-  cache[cacheId] = c
+export const setGlobal = globalId => c => () => {
+  global[globalId] = c
 }

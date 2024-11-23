@@ -9,6 +9,7 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (fst, snd)
 import Data.Tuple.Nested (type (/\), (/\))
+import Effect (Effect)
 
 import Pasta.Component as Component
 import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), SetState)
@@ -16,48 +17,72 @@ import Pasta.Element (Element(..))
 import Pasta.Element as Element
 import Pasta.Run.Class (class Run, run)
 
+-- * VDom.
+
 type StateHash = Int
 
 type ComponentRef = Component.Key /\ StateHash
 
--- TODO rename to VDom and include global listeners.
-type Cache = Map ComponentRef Flat
+data VDom = VDom
+  { components :: Map ComponentRef Flat -- TODO include HTML element ID
+  , listeners :: Map Int (Effect Unit)
+  , nextListenerId :: Int
+  }
+
+addListener :: Effect Unit -> VDom -> VDom
+addListener f (VDom v) = VDom v
+  { listeners = Map.insert v.nextListenerId f v.listeners
+  , nextListenerId = v.nextListenerId + 1
+  }
+
+insert :: ComponentRef -> Flat -> VDom -> VDom
+insert key val (VDom v) =
+  VDom v { components = Map.insert key val v.components }
+
+union :: VDom -> VDom -> VDom
+union (VDom v1) (VDom v2) = VDom
+  { components: Map.union v1.components v2.components
+  , listeners: Map.union v1.listeners v2.listeners
+  , nextListenerId: max v1.nextListenerId v2.nextListenerId
+  }
+
+-- * Flat.
 
 data Flat
   = FlatComponentRef ComponentRef
   | FlatElement (Element Flat)
 
-instance Run Flat (ChildComponent s) Cache s where
-  run c child' s setS = runExists cacheChild' child'
+instance Run (ChildComponent s) Flat VDom s where
+  run vDom child s setS = runExists runChild child
     where
-    cacheChild' :: forall t. ChildComponentF s t -> Flat /\ Cache
-    cacheChild' (ChildComponent (sToT /\ updateTInS /\ componentT)) =
-      run c componentT (sToT s) $ \t -> setS $ updateTInS t s
+    runChild :: forall t. ChildComponentF s t -> Flat /\ VDom
+    runChild (ChildComponent (sToT /\ updateTInS /\ componentT)) =
+      run vDom componentT (sToT s) $ \t -> setS $ updateTInS t s
 
-instance Run Flat (Component s) Cache s where
+instance Run (Component s) Flat VDom s where
   run = runComponent
 
-runComponent :: forall s. Cache -> Component s -> s -> SetState s -> Flat /\ Cache
-runComponent c (Component comp) s setS = do
+runComponent :: forall s. VDom -> Component s -> s -> SetState s -> Flat /\ VDom
+runComponent vDom (Component comp) s setS = do
   let
     node = comp.node s $ \sNew -> do
       comp.options.onUpdate sNew
       setS sNew
-  let flatNode /\ cacheNode = run c node s setS
+  let flatNode /\ vDomNode = run vDom node s setS
   flatNode /\ case comp.options.key of
-    Nothing -> cacheNode
-    Just key -> Map.insert (key /\ comp.options.hash s) flatNode cacheNode
+    Nothing -> vDomNode
+    Just key -> insert (key /\ comp.options.hash s) flatNode vDomNode
 
-instance Run Flat (Element (Node s)) Cache s where
-  run c (ElementContainer container) s setS =
+instance Run (Element (Node s)) Flat VDom s where
+  run vDom (ElementContainer container) s setS =
     let
-      flatChildren = map (\node -> run c node s setS) container
+      runChildren = container <#> \node -> run vDom node s setS
     in
-      FlatElement (ElementContainer $ map fst flatChildren)
-        /\ foldlDefault Map.union c (map snd $ Element.children flatChildren)
-  run c (ElementInner inner) _ _ = FlatElement (ElementInner inner) /\ c
-  run c (ElementVoid void) _ _ = FlatElement (ElementVoid void) /\ c
+      FlatElement (ElementContainer $ fst <$> runChildren)
+        /\ foldlDefault union vDom (snd <$> Element.children runChildren)
+  run vDom (ElementInner inner) _ _ = FlatElement (ElementInner inner) /\ vDom
+  run vDom (ElementVoid void) _ _ = FlatElement (ElementVoid void) /\ vDom
 
-instance Run Flat (Node s) Cache s where
-  run c (NodeChildComponent child') = run c child'
-  run c (NodeElement element) = run c element
+instance Run (Node s) Flat VDom s where
+  run vDom (NodeChildComponent child) = run vDom child
+  run vDom (NodeElement element) = run vDom element
