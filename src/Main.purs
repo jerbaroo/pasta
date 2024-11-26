@@ -1,13 +1,13 @@
 module Main where
 
-import Prelude (Unit, show, ($), (<<<))
+import Prelude (Unit, show, ($), (<>))
 
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Pasta.Attribute (class')
 import Pasta.Cook as Pasta
-import Pasta.Component (Component, c, component, componentK, div, div_, options, text)
+import Pasta.Component (Component, c, component, div, div_, options, text)
 import Pasta.Strategy.Flat (innerHtml, emptyVDom)
 
 main :: Effect Unit
@@ -17,13 +17,15 @@ type AppState = { foo :: Int, bar :: Int }
 
 parent :: Component AppState
 parent = component
-  (options { key = Just "counter-example", onUpdate = log <<< show })
+  options { key = Just "parent", onUpdate = \s -> log $ "parent: " <> show s }
   \_ _ ->
     div
       [ class' "hello" ]
-      [ c _.foo (\t s -> s { foo = t }) counter
-      , c _.bar (\t s -> s { bar = t }) counter
+      [ c _.foo (\t s -> s { foo = t }) child
+      , c _.bar (\t s -> s { bar = t }) child
       ]
 
-counter :: Component Int
-counter = componentK "counter" \s _ -> div_ [ text $ show s ]
+child :: Component Int
+child = component
+  options { key = Just "child", onUpdate = \s -> log $ "child: " <> show s }
+  \s _ -> div_ [ text $ show s ]

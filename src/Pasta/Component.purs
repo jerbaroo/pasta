@@ -15,11 +15,11 @@ import Pasta.Element (Container(..), ContainerTag(..), Element(..))
 
 type Key = String
 
-type SetState s = s -> Effect Unit
+type UpdateState s = (s -> s) -> Effect Unit -- TODO Maybe
 
 -- | A function from state to node, and some rendering options.
 data Component s = Component
-  { node :: s -> SetState s -> Node s
+  { node :: s -> UpdateState s -> Node s
   , options :: Options s
   }
 
@@ -29,7 +29,7 @@ type Options s =
   -- | Key to enable hashing of the component for a given state 's'.
   , key :: Maybe Key
   -- | A function to execute before state is updated.
-  , onUpdate :: SetState s
+  , onUpdate :: s -> Effect Unit
   }
 
 -- | Default options.
@@ -37,12 +37,12 @@ options :: forall s. Hashable s => Options s
 options = { hash: hash, key: Nothing, onUpdate: \_ -> pure unit }
 
 -- | Construct a component with given 'Options'.
-component :: forall s. Options s -> (s -> SetState s -> Node s) -> Component s
+component :: forall s. Options s -> (s -> UpdateState s -> Node s) -> Component s
 component options' node = Component { node, options: options' }
 
 -- | Construct a component with default 'Options' and given 'Key'.
 componentK
-  :: forall s. Hashable s => Key -> (s -> SetState s -> Node s) -> Component s
+  :: forall s. Hashable s => Key -> (s -> UpdateState s -> Node s) -> Component s
 componentK key node = Component { node, options: options { key = Just key } }
 
 -- * Child component.

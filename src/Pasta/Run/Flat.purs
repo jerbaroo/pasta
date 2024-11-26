@@ -12,7 +12,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
 import Pasta.Component as Component
-import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), SetState)
+import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), UpdateState)
 import Pasta.Element (Element(..))
 import Pasta.Element as Element
 import Pasta.Run.Class (class Run, run)
@@ -53,35 +53,31 @@ data Flat
   | FlatElement (Element Flat)
 
 instance Run (ChildComponent s) Flat VDom s where
-  run vDom child s setS = runExists runChild child
+  run vDom child s updateS = runExists runChild child
     where
-    runChild :: forall t. ChildComponentF s t -> Flat /\ VDom
-    runChild (ChildComponent (sToT /\ updateTInS /\ componentT)) =
-      run vDom componentT (sToT s) $ \t -> setS $ updateTInS t s
+    runChild :: forall t. ChildComponentF s t -> Effect (Flat /\ VDom)
+    runChild (ChildComponent (sToT /\ setTInS /\ componentT)) =
+      run vDom componentT (sToT s) \f -> updateS \s' -> setTInS (f $ sToT s') s'
 
 instance Run (Component s) Flat VDom s where
   run = runComponent
 
-runComponent :: forall s. VDom -> Component s -> s -> SetState s -> Flat /\ VDom
-runComponent vDom (Component comp) s setS = do
-  let
-    node = comp.node s $ \sNew -> do
-      comp.options.onUpdate sNew
-      setS sNew
-  let flatNode /\ vDomNode = run vDom node s setS
-  flatNode /\ case comp.options.key of
+runComponent :: forall s. VDom -> Component s -> s -> UpdateState s -> Effect (Flat /\ VDom)
+runComponent vDom (Component comp) s updateS = do
+  comp.options.onUpdate s
+  let node = comp.node s updateS
+  flatNode /\ vDomNode <- run vDom node s updateS
+  pure $ flatNode /\ case comp.options.key of
     Nothing -> vDomNode
     Just key -> insert (key /\ comp.options.hash s) flatNode vDomNode
 
 instance Run (Element (Node s)) Flat VDom s where
-  run vDom (ElementContainer container) s setS =
-    let
-      runChildren = container <#> \node -> run vDom node s setS
-    in
-      FlatElement (ElementContainer $ fst <$> runChildren)
-        /\ foldlDefault union vDom (snd <$> Element.children runChildren)
-  run vDom (ElementInner inner) _ _ = FlatElement (ElementInner inner) /\ vDom
-  run vDom (ElementVoid void) _ _ = FlatElement (ElementVoid void) /\ vDom
+  run vDom (ElementContainer container) s updateS = do
+    runChildren <- Element.sequence $ container <#> \node -> run vDom node s updateS
+    pure $ FlatElement (ElementContainer $ fst <$> runChildren)
+      /\ foldlDefault union vDom (snd <$> Element.children runChildren)
+  run vDom (ElementInner inner) _ _ = pure $ FlatElement (ElementInner inner) /\ vDom
+  run vDom (ElementVoid void) _ _ = pure $ FlatElement (ElementVoid void) /\ vDom
 
 instance Run (Node s) Flat VDom s where
   run vDom (NodeChildComponent child) = run vDom child
