@@ -73,7 +73,8 @@ runComponent vDom (Component comp) s updateS = do
 
 instance Run (Element (Node s)) Flat VDom s where
   run vDom (ElementContainer container) s updateS = do
-    runChildren <- Element.sequence $ container <#> \node -> run vDom node s updateS
+    runChildren <- Element.sequence $
+      container <#> \node -> run vDom node s updateS
     pure $ FlatElement (ElementContainer $ fst <$> runChildren)
       /\ foldlDefault union vDom (snd <$> Element.children runChildren)
   run vDom (ElementInner inner) _ _ = pure $ FlatElement (ElementInner inner) /\ vDom

@@ -6,6 +6,7 @@ import Data.Either (Either(..))
 import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested ((/\))
+import Effect.Console (log)
 
 import Pasta.Element (Element(..), sequence)
 import Pasta.Strategy (DomUpdates(..), Strategy)
@@ -37,5 +38,6 @@ innerHtml attachId =
       Left (key /\ hash) -> Left $
         "error: could not find " <> key <> "-" <> show hash <> " in VDom"
       Right raw -> Right $ InnerHtml raw attachId
+  , onError: log
   , run: runComponent
   }

@@ -15,7 +15,7 @@ import Pasta.Element (Container(..), ContainerTag(..), Element(..))
 
 type Key = String
 
-type UpdateState s = (s -> s) -> Effect Unit -- TODO Maybe
+type UpdateState s = (s -> s) -> Effect Unit
 
 -- | A function from state to node, and some rendering options.
 data Component s = Component
