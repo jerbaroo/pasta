@@ -8,8 +8,7 @@ import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
-import Pasta.Attribute (DivAttr, toAttrs)
-import Pasta.Element (Container(..), ContainerTag(..), Element(..))
+import Pasta.Element (Element)
 
 -- * Component.
 
@@ -73,14 +72,3 @@ child a b c' = NodeChildComponent $ childComponent $ a /\ b /\ c'
 -- | Shorthand for 'child'.
 c :: forall s t. (s -> t) -> (t -> s -> s) -> Component t -> Node s
 c = child
-
--- * HTML nodes.
-
-text :: forall s. String -> Node s
-text = NodeElement <<< ElementInner
-
-div :: forall s. Array DivAttr -> Array (Node s) -> Node s
-div as cs = NodeElement $ ElementContainer $ Container Div (toAttrs as) cs []
-
-div_ :: forall s. Array (Node s) -> Node s
-div_ = div []

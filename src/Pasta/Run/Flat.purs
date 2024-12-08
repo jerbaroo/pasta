@@ -63,13 +63,12 @@ instance Run (Component s) Flat VDom s where
   run = runComponent
 
 runComponent :: forall s. VDom -> Component s -> s -> UpdateState s -> Effect (Flat /\ VDom)
-runComponent vDom (Component comp) s updateS = do
-  comp.options.onUpdate s
-  let node = comp.node s updateS
-  flatNode /\ vDomNode <- run vDom node s updateS
-  pure $ flatNode /\ case comp.options.key of
+runComponent vDom (Component c) s updateS = do
+  c.options.onUpdate s
+  flatNode /\ vDomNode <- run vDom (c.node s updateS) s updateS
+  pure $ flatNode /\ case c.options.key of
     Nothing -> vDomNode
-    Just key -> insert (key /\ comp.options.hash s) flatNode vDomNode
+    Just key -> insert (key /\ c.options.hash s) flatNode vDomNode
 
 instance Run (Element (Node s)) Flat VDom s where
   run vDom (ElementContainer container) s updateS = do
