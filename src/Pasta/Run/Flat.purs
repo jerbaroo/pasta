@@ -13,8 +13,9 @@ import Effect (Effect)
 
 import Pasta.Component as Component
 import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), UpdateState)
-import Pasta.Element (Element(..))
+import Pasta.Element (Container, Element(..))
 import Pasta.Element as Element
+import Pasta.Listener (Handler, Listener)
 import Pasta.Run.Class (class Run, run)
 
 -- * VDom.
@@ -24,15 +25,15 @@ type StateHash = Int
 type ComponentRef = Component.Key /\ StateHash
 
 data VDom = VDom
-  { components :: Map ComponentRef Flat -- TODO include HTML element ID
-  , listeners :: Map Int (Effect Unit)
-  , nextListenerId :: Int
+  { components :: Map ComponentRef Flat
+  , globalFuncs :: Map String Handler
+  , nextFuncId :: Int
   }
 
-addListener :: Effect Unit -> VDom -> VDom
-addListener f (VDom v) = VDom v
-  { listeners = Map.insert v.nextListenerId f v.listeners
-  , nextListenerId = v.nextListenerId + 1
+addGlobalFuncs :: Int -> Array (String /\ Handler) -> VDom -> VDom
+addGlobalFuncs nextFuncId funcs (VDom v) = VDom v
+  { globalFuncs = Map.union v.globalFuncs $ Map.fromFoldable funcs
+  , nextFuncId = nextFuncId
   }
 
 insert :: ComponentRef -> Flat -> VDom -> VDom
@@ -42,43 +43,55 @@ insert key val (VDom v) =
 union :: VDom -> VDom -> VDom
 union (VDom v1) (VDom v2) = VDom
   { components: Map.union v1.components v2.components
-  , listeners: Map.union v1.listeners v2.listeners
-  , nextListenerId: max v1.nextListenerId v2.nextListenerId
+  , globalFuncs: Map.union v1.globalFuncs v2.globalFuncs
+  , nextFuncId: max v1.nextFuncId v2.nextFuncId
   }
 
 -- * Flat.
 
 data Flat
   = FlatComponentRef ComponentRef
-  | FlatElement (Element Flat)
+  | FlatElement (Element Void Flat)
 
 instance Run (ChildComponent s) Flat VDom s where
-  run vDom child s updateS = runExists runChild child
-    where
+  run globalId vDom child s updateS = runExists runChild child
+   where
     runChild :: forall t. ChildComponentF s t -> Effect (Flat /\ VDom)
     runChild (ChildComponent (sToT /\ setTInS /\ componentT)) =
-      run vDom componentT (sToT s) \f -> updateS \s' -> setTInS (f $ sToT s') s'
+      run globalId vDom componentT (sToT s) \f ->
+        updateS \s' -> setTInS (f $ sToT s') s'
 
 instance Run (Component s) Flat VDom s where
   run = runComponent
 
-runComponent :: forall s. VDom -> Component s -> s -> UpdateState s -> Effect (Flat /\ VDom)
-runComponent vDom (Component c) s updateS = do
+runComponent :: forall s.
+  String -> VDom -> Component s -> s -> UpdateState s -> Effect (Flat /\ VDom)
+runComponent globalId vDom (Component c) s updateS = do
   c.options.onUpdate s
-  flatNode /\ vDomNode <- run vDom (c.node s updateS) s updateS
+  flatNode /\ vDomNode <- run globalId vDom (c.node s updateS) s updateS
   pure $ flatNode /\ case c.options.key of
-    Nothing -> vDomNode
+    Nothing  -> vDomNode
     Just key -> insert (key /\ c.options.hash s) flatNode vDomNode
 
-instance Run (Element (Node s)) Flat VDom s where
-  run vDom (ElementContainer container) s updateS = do
-    runChildren <- Element.sequence $
-      container <#> \node -> run vDom node s updateS
-    pure $ FlatElement (ElementContainer $ fst <$> runChildren)
-      /\ foldlDefault union vDom (snd <$> Element.children runChildren)
-  run vDom (ElementInner inner) _ _ = pure $ FlatElement (ElementInner inner) /\ vDom
-  run vDom (ElementVoid void) _ _ = pure $ FlatElement (ElementVoid void) /\ vDom
+instance Run (Element Listener (Node s)) Flat VDom s where
+  run globalId vDom@(VDom v) (ElementContainer container) s updateS = do
+    -- Apply 'run' to each child in the container.
+    (container' :: Container Listener (Flat /\ VDom)) <- Element.sequence $
+      container <#> \node -> run globalId vDom node s updateS
+    -- Apply listeners to element as attribtues e.g. "onclick".
+    let (nextFuncId /\ ls /\ container'') =
+          Element.listenersToAttrs globalId v.nextFuncId container'
+    let newVDom = addGlobalFuncs nextFuncId ls $ foldlDefault union vDom $
+          snd <$> Element.children container''
+    pure $ FlatElement (ElementContainer $ fst <$> container'') /\ newVDom
+
+  run _ vDom (ElementInner inner) _ _ =
+    pure $ FlatElement (ElementInner inner) /\ vDom
+
+  run globalId vDom@(VDom v) (ElementVoid void) _ _ = pure $
+    let (nextFuncId /\ ls /\ void') = Element.listenersToAttrs globalId v.nextFuncId void
+    in  FlatElement (ElementVoid void') /\ (addGlobalFuncs nextFuncId ls vDom)
 
 instance Run (Node s) Flat VDom s where
-  run vDom (NodeChildComponent child) = run vDom child
-  run vDom (NodeElement element) = run vDom element
+  run globalId vDom (NodeChildComponent child) = run globalId vDom child
+  run globalId vDom (NodeElement element) = run globalId vDom element

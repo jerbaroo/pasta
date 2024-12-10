@@ -19,22 +19,19 @@ instance Render Attr where
 class ToAttr a where
   toAttr :: a -> Attr
 
--- | Newtype for rendering array of attribtues.
-newtype Attrs = Attrs (Array Attr)
+class GetAttrs a where
+  getAttrs :: a -> Array Attr
 
--- | Set of types that have HTML attributes.
-class HasAttrs a where
-  attrs :: a -> Attrs
+class SetAttrs a where
+  setAttrs :: Array Attr -> a -> a
 
-instance Render Attrs where
-  render (Attrs attrs) = intercalate " " $ map render attrs
+newtype RenderAttrs = RenderAttrs (Array Attr)
 
-toAttrs :: forall a. ToAttr a => Array a -> Attrs
-toAttrs = Attrs <<< map toAttr
+instance Render RenderAttrs where
+  render (RenderAttrs attrs) = intercalate " " $ map render attrs
 
 -- * Attributes.
 
--- | HTML class attribute.
 newtype Class = Class String
 
 instance ToAttr Class where
@@ -46,7 +43,6 @@ class ClassAttr a where
 
 -- * Per-element attributes.
 
--- | HTML "div" attributes.
 data DivAttr = DivClass Class
 
 instance ClassAttr DivAttr where

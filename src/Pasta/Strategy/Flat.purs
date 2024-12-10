@@ -16,8 +16,8 @@ import Pasta.Run.Flat (ComponentRef, Flat(..), VDom(..), runComponent)
 emptyVDom :: VDom
 emptyVDom = VDom
   { components: Map.empty
-  , listeners: Map.empty
-  , nextListenerId: 0
+  , globalFuncs: Map.empty
+  , nextFuncId: 0
   }
 
 -- | Convert 'Flat' HTML to 'Raw' HTML via provided virtual DOM.
@@ -34,10 +34,12 @@ flatToRaw _ (FlatElement (ElementVoid void)) = Right $ Raw $ ElementVoid void
 -- | A simple strategy that re-renders the entire app on every state update.
 innerHtml :: String -> Strategy Flat VDom
 innerHtml attachId =
-  { instructions: \_ vDomNew f -> case flatToRaw vDomNew f of
+  { instructions: \_ vDomNew@(VDom v) f -> case flatToRaw vDomNew f of
       Left (key /\ hash) -> Left $
         "error: could not find " <> key <> "-" <> show hash <> " in VDom"
-      Right raw -> Right $ InnerHtml raw attachId
+      Right raw -> Right $
+        (Map.toUnfoldable v.globalFuncs <#> \(n /\ g) -> RegisterFunc n g)
+        <> [ InnerHtml raw attachId ]
   , onError: log
   , run: runComponent
   }

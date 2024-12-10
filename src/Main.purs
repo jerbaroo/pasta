@@ -8,11 +8,11 @@ import Effect.Class.Console (log)
 import Pasta.Attribute (class')
 import Pasta.Cook as Pasta
 import Pasta.Component (Component, c, component, options)
+import Pasta.Listener (onClick)
 import Pasta.Node
-import Pasta.Strategy.Flat (innerHtml, emptyVDom)
 
 main :: Effect Unit
-main = Pasta.cook "my-app" (innerHtml "root") emptyVDom parent { foo: 1, bar: 2 }
+main = Pasta.cookDefault "my_app" "root" parent { foo: 1, bar: 2 }
 
 type AppState = { foo :: Int, bar :: Int }
 
@@ -20,8 +20,9 @@ parent :: Component AppState
 parent = component
   options { key = Just "parent", onUpdate = \s -> log $ "parent: " <> show s }
   \_ _ ->
-    div_
+    div
       [ class' "hello" ]
+      [ onClick \_ -> log "clicked parent" ]
       [ c _.foo (\t s -> s { foo = t }) child
       , c _.bar (\t s -> s { bar = t }) child
       ]

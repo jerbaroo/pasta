@@ -9,6 +9,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
 
 import Pasta.Element (Element)
+import Pasta.Listener (Listener)
 
 -- * Component.
 
@@ -63,7 +64,7 @@ childComponent = mkExists <<< ChildComponent
 -- | A node is either HTML or a child component, think of it like JSX.
 data Node s
   = NodeChildComponent (ChildComponent s)
-  | NodeElement (Element (Node s))
+  | NodeElement (Element Listener (Node s))
 
 -- | Lift a child component into a 'Node'.
 child :: forall s t. (s -> t) -> (t -> s -> s) -> Component t -> Node s

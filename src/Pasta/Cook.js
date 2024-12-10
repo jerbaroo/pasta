@@ -3,12 +3,17 @@ export const attach = (attachId) => (innerHtml) => () => {
   elem.innerHTML = innerHtml
 }
 
-var global = {}
+var pasta = {}
 
 export const getGlobal = globalId => () => {
-  return global[globalId]
+  return pasta[globalId]
 }
 
 export const setGlobal = globalId => c => () => {
-  global[globalId] = c
+  pasta[globalId] = c
+}
+
+export const registerFunc = globalName => f => () => {
+  console.log(`Registering function ${globalName}`)
+  window[globalName] = f
 }
