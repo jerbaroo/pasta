@@ -37,7 +37,7 @@ listenersToAttrs :: forall e1 e2.
 listenersToAttrs prefix funcId e =
   let ls        = getListeners e
       maxFuncId = funcId + length ls
-      names     = (funcId .. maxFuncId) <#> \i -> prefix <> "_" <> show i
+      names     = funcId .. maxFuncId <#> \i -> "__" <> prefix <> "_" <> show i
       attrs     = zip names ls <#> \(n /\ l) -> listenerToAttr (n <> "()") l
   in ((maxFuncId + 1) /\ (zip names (handler <$> ls)) /\ (setAttrs attrs $ setListeners @P.Void [] e))
 

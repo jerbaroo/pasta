@@ -4,9 +4,12 @@ package:
     - arrays
     - console
     - effect
+    - exceptions
     - exists
     - lists
     - maybe
+    - node-buffer
+    - node-fs
     - open-folds
     - prelude
     - unordered-collections
@@ -15,5 +18,5 @@ package:
     dependencies: []
 workspace:
   packageSet:
-    registry: 60.6.0
+    registry: 62.0.0
   extraPackages: {}

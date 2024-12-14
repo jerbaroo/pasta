@@ -7,9 +7,16 @@ import Data.Hashable (class Hashable, hash)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
+import Foreign.Generic.Class (class Encode)
 
 import Pasta.Element (Element)
 import Pasta.Listener (Listener)
+
+-- * State.
+
+class SSRState s where
+  readState :: String -> s
+  showState :: s -> String
 
 -- * Component.
 
