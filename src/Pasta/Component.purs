@@ -7,10 +7,12 @@ import Data.Hashable (class Hashable, hash)
 import Data.Maybe (Maybe(..))
 import Data.Tuple.Nested (type (/\), (/\))
 import Effect (Effect)
-import Foreign.Generic.Class (class Encode)
 
 import Pasta.Element (Element)
 import Pasta.Listener (Listener)
+
+foreign import readStateUnsafe :: forall a. String -> a
+foreign import showStateUnsafe :: forall a. a -> String
 
 -- * State.
 

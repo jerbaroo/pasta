@@ -8,8 +8,10 @@ package:
     - exists
     - lists
     - maybe
+    - newtype
     - node-buffer
     - node-fs
+    - node-process
     - open-folds
     - prelude
     - unordered-collections

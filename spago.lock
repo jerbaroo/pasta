@@ -12,8 +12,10 @@
             "exists",
             "lists",
             "maybe",
+            "newtype",
             "node-buffer",
             "node-fs",
+            "node-process",
             "open-folds",
             "prelude",
             "unordered-collections"
@@ -36,6 +38,7 @@
             "exists",
             "foldable-traversable",
             "foreign",
+            "foreign-object",
             "functions",
             "functors",
             "gen",
@@ -51,6 +54,7 @@
             "node-event-emitter",
             "node-fs",
             "node-path",
+            "node-process",
             "node-streams",
             "nonempty",
             "now",
@@ -61,6 +65,7 @@
             "orders",
             "parallel",
             "partial",
+            "posix-types",
             "prelude",
             "profunctor",
             "record",
@@ -833,6 +838,25 @@
         "transformers"
       ]
     },
+    "foreign-object": {
+      "type": "registry",
+      "version": "4.1.0",
+      "integrity": "sha256-q24okj6mT+yGHYQ+ei/pYPj5ih6sTbu7eDv/WU56JVo=",
+      "dependencies": [
+        "arrays",
+        "foldable-traversable",
+        "functions",
+        "gen",
+        "lists",
+        "maybe",
+        "prelude",
+        "st",
+        "tailrec",
+        "tuples",
+        "typelevel-prelude",
+        "unfoldable"
+      ]
+    },
     "functions": {
       "type": "registry",
       "version": "6.0.0",
@@ -1030,6 +1054,22 @@
         "effect"
       ]
     },
+    "node-process": {
+      "type": "registry",
+      "version": "11.2.0",
+      "integrity": "sha256-+2MQDYChjGbVbapCyJtuWYwD41jk+BntF/kcOTKBMVs=",
+      "dependencies": [
+        "effect",
+        "foreign",
+        "foreign-object",
+        "maybe",
+        "node-event-emitter",
+        "node-streams",
+        "posix-types",
+        "prelude",
+        "unsafe-coerce"
+      ]
+    },
     "node-streams": {
       "type": "registry",
       "version": "9.0.0",
@@ -1151,6 +1191,15 @@
       "version": "4.0.0",
       "integrity": "sha256-fwXerld6Xw1VkReh8yeQsdtLVrjfGiVuC5bA1Wyo/J4=",
       "dependencies": []
+    },
+    "posix-types": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-ZfFz8RR1lee/o/Prccyeut3Q+9tYd08mlR72sIh6GzA=",
+      "dependencies": [
+        "maybe",
+        "prelude"
+      ]
     },
     "prelude": {
       "type": "registry",

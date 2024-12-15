@@ -9,7 +9,6 @@ import Data.Map as Map
 import Data.Maybe (Maybe(..))
 import Data.Tuple (fst, snd)
 import Data.Tuple.Nested (type (/\), (/\))
-import Effect (Effect)
 
 import Pasta.Component as Component
 import Pasta.Component (ChildComponent, ChildComponentF(..), Component(..), Node(..), UpdateState)
